@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consulta de Horarios</title>
+</head>
+<body>
+    
+
+    <h1>Consulta de Horarios</h1>
+    <form id="consulta-form">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <br>
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono" name="telefono" required>
+        <br>
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" name="cantidad" min="1" required>
+        <br>
+        <label for="fecha">Selecciona una fecha:</label>
+        <select class="form-control" id="fecha" name="fecha_nombre" required>
+            <option value="" disabled selected>Elige una fecha</option>
+            <!-- Las fechas disponibles se cargarán aquí mediante JavaScript -->
+        </select>
+        <br>
+        <button type="button" onclick="consultarHorariosLibres()">Consultar Horarios Libres</button>
+    </form>
+    <h2>Horarios Libres:</h2>
+    <select id="horarios-libres"></select>
+
+    <!-- Botón de confirmación -->
+    <button type="button" onclick="confirmarSeleccion()">Confirmar Selección</button>
+
+    <!-- Mensaje de éxito (inicialmente oculto) -->
+    <p id="mensaje-exito" style="color: green; display: none;">Cliente creado con éxito.</p>
+    
+    <script>
+        // Función para consultar horarios libres
+        function consultarHorariosLibres() {
+            const nombre = document.getElementById("nombre").value;
+            const telefono = document.getElementById("telefono").value;
+            const cantidad = document.getElementById("cantidad").value;
+            const fechaNombre = document.getElementById("fecha").value; // Usamos el valor de fecha como fecha_nombre
+
+            // Llamada a la API para obtener horarios libres según la fecha y cantidad
+            fetch(`/api/clientes/resta_cantidad/${fechaNombre}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const horariosLibres = document.getElementById("horarios-libres");
+                horariosLibres.innerHTML = ''; // Limpiar resultados anteriores
+
+                for (const horario in data) {
+                    if (data[horario][fechaNombre] >= cantidad || data[horario]["Disponible"] >= cantidad) {
+                        const option = document.createElement("option");
+                        option.value = horario;
+                        option.textContent = horario;
+                        horariosLibres.appendChild(option);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Función para cargar las fechas disponibles desde la API
+        function cargarFechasDisponibles() {
+            fetch('/api/fechas', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const selectFecha = document.getElementById('fecha');
+                selectFecha.innerHTML = '<option value="" disabled selected>Elige una fecha</option>';
+
+                // Filtrar las fechas disponibles con estado 'Abierto'
+                const fechasAbiertas = data.filter(fecha => fecha.status === 'Abierto');
+
+                fechasAbiertas.forEach(fechaDisponible => {
+                    const option = document.createElement('option');
+                    option.value = fechaDisponible.fecha;
+                    option.text = fechaDisponible.fecha;
+                    selectFecha.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error al obtener las fechas:', error);
+            });
+        }
+
+        function crearCliente() {
+            const nombre = document.getElementById("nombre").value;
+            const telefono = document.getElementById("telefono").value;
+            const cantidad = document.getElementById("cantidad").value;
+            const horario = document.getElementById("horarios-libres").value;
+            const status = "Pendiente de Pago"; // Cambia el estado a "Confirmado" aquí
+            const fechaNombre = document.getElementById("fecha").value; // Usamos el valor de fecha como fecha_nombre
+            
+            // Llamada a la API para crear un cliente
+            fetch(`/crear_cliente`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nombre: nombre,
+                    telefono: telefono,
+                    cantidad: cantidad,
+                    horario: horario,
+                    status: status,
+                    fecha_nombre: fechaNombre // Utiliza fecha_nombre en lugar de fecha_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Imprimir la respuesta de la API en la consola
+                console.log('Respuesta de la API:', data);
+
+                // Mostrar mensaje de éxito
+                const mensajeExito = document.getElementById("mensaje-exito");
+                mensajeExito.style.display = "block";
+
+                // Limpia el formulario después de crear el cliente
+                document.getElementById("nombre").value = "";
+                document.getElementById("telefono").value = "";
+                document.getElementById("cantidad").value = "";
+                document.getElementById("fecha").value = "";
+                document.getElementById("horarios-libres").innerHTML = "";
+
+                // Oculta el mensaje de éxito después de 3 segundos
+                setTimeout(() => {
+                    mensajeExito.style.display = "none";
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error al crear el cliente:', error);
+            });
+        }
+
+
+        // Función para confirmar la selección y crear el cliente
+        function confirmarSeleccion() {
+            const horarioSeleccionado = document.getElementById("horarios-libres").value;
+            if (horarioSeleccionado) {
+                crearCliente(); // Llama a la función para crear el cliente
+            } else {
+                alert("Por favor, selecciona un horario antes de confirmar.");
+            }
+        }
+
+        // Llama a la función para cargar las fechas disponibles al cargar la página
+        window.addEventListener('load', cargarFechasDisponibles);
+    </script>
+</body>
+</html>

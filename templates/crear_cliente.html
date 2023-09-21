@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crear Cliente</title>
+</head>
+<body>
+    <h1>Crear Nuevo Cliente</h1>
+
+    <form method="POST" action="/crear_cliente/{{ date_id }}">
+        <label for="horario">Horario:</label>
+        <select id="horario" name="horario" required>
+            <!-- Aquí generamos las opciones de horario -->
+            <option value="">Selecciona un horario</option>
+            <!-- Generar opciones de 10:30 en adelante cada 30 minutos -->
+            <script>
+                var select = document.getElementById("horario");
+                var hora = 10;
+                var minuto = 30;
+
+                while (hora < 24) {
+                    while (minuto < 60) {
+                        var option = document.createElement("option");
+                        var horaStr = hora.toString().padStart(2, "0");
+                        var minutoStr = minuto.toString().padStart(2, "0");
+                        option.value = horaStr + ":" + minutoStr;
+                        option.textContent = horaStr + ":" + minutoStr;
+                        select.appendChild(option);
+                        minuto += 30;
+                    }
+                    hora++;
+                    minuto = 0;
+                }
+            </script>
+        </select>
+
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <label for="cantidad">Cantidad:</label>
+        <input type="text" id="cantidad" name="cantidad" required>
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono" name="telefono" required>
+        <label for="status">Status:</label>
+        <input type="text" id="status" name="status" required>
+        <input type="submit" value="Crear Cliente">
+    </form>
+
+    <a href="/fecha/{{ date_id }}">Volver a la tabla de clientes</a>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Fecha</title>
+</head>
+<body>
+    <h1>Editar Fecha</h1>
+    <form method="POST" action="/editar_fecha/{{ date_id }}">
+        <label for="nueva_fecha">Nueva Fecha (YYYY-MM-DD):</label>
+        <input type="text" id="nueva_fecha" name="nueva_fecha" placeholder="Ejemplo: 2023-08-08" value="{{ fecha }}">
+        <input type="text" id="status" name="status" placeholder="Ejemplo:Cerrado" value="{{ status }}">
+        <input type="submit" value="Guardar Cambios">
+    </form>
+</body>
+</html>

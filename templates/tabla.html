@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tabla de Clientes</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        select {
+            width: 100%;
+            padding: 5px;
+        }
+
+        a {
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+            var horarioRows = {};
+
+            // Agrupar clientes con el mismo horario
+            $("table tbody tr").each(function() {
+                var horario = $(this).find("td:first-child").text();
+                if (horarioRows[horario]) {
+                    horarioRows[horario].push($(this));
+                } else {
+                    horarioRows[horario] = [$(this)];
+                }
+            });
+
+            // Ocultar horario en las filas siguientes
+            $.each(horarioRows, function(horario, rows) {
+                for (var i = 1; i < rows.length; i++) {
+                    rows[i].find("td:first-child").html("");
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Tabla de Clientes</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Horario</th>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Teléfono</th>
+                <th>Status</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+           {% set current_horario = '' %}
+            {% for client in clients|sort(attribute='horario') %}
+                {% if current_horario != client['horario'] %}
+                    {% if current_horario != '' %}
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td>{{ client['horario'] }}</td>
+                        <td>{{ client['nombre'] }}</td>
+                        <td>{{ client['cantidad'] }}</td>
+                        <td>{{ client['telefono'] }}</td>
+                        <td>
+                            <!-- Campo dropdown para modificar el status -->
+                            <select name="status" data-cliente-id="{{ client['id'] }}">
+                                <option value="Confirmado" {% if client['status'] == 'Confirmado' %}selected{% endif %}>Confirmado</option>
+                                <option value="Retrasado" {% if client['status'] == 'Retrasado' %}selected{% endif %}>Retrasado</option>
+                                <option value="S/ Novedad" {% if client['status'] == 'S/ Novedad' %}selected{% endif %}>S/ Novedad</option>
+                            </select>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('editar_cliente', cliente_id=client['id']) }}">Editar</a>
+                        </td>
+                    </tr>
+                    {% set current_horario = client['horario'] %}
+                {% else %}
+                    <td>{{ client['nombre'] }}</td>
+                    <td>{{ client['cantidad'] }}</td>
+                    <td>{{ client['telefono'] }}</td>
+                    <td>
+                        <!-- Campo dropdown para modificar el status -->
+                        <select name="status" data-cliente-id="{{ client['id'] }}">
+                            <option value="Confirmado" {% if client['status'] == 'Confirmado' %}selected{% endif %}>Confirmado</option>
+                            <option value="Retrasado" {% if client['status'] == 'Retrasado' %}selected{% endif %}>Retrasado</option>
+                            <option value="S/ Novedad" {% if client['status'] == 'S/ Novedad' %}selected{% endif %}>S/ Novedad</option>
+                        </select>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('editar_cliente', cliente_id=client['id']) }}">Editar</a>
+                    </td>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('crear_cliente', date_id=date_id) }}">Crear Nuevo Cliente</a>
+    <a href="/">Volver a la lista de fechas</a>
+</body>
+</html>
